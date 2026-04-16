@@ -18,7 +18,18 @@ namespace RemittanceTest.Services
         public (bool IsSuccess, string Message) CancelRemittance(int id)
         {
             // TODO: 請在此處實作「取消」的商業邏輯與防併發檢核
+            // 1. validate id exists
+            // 2. validate status == 0
+            // 3. handle concurrency (lock)
+    
+            var item = _db.FirstOrDefault(x => x.Id == id);
 
+            if (item == null)
+                return (false, "NOT_FOUND");
+
+            item.Status = 9;
+
+            return (true, "SUCCESS");
             throw new NotImplementedException();
         }
     }
