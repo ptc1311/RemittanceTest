@@ -21,19 +21,40 @@ namespace RemittanceTest.Services
             // 1. validate id exists
             // 2. validate status == 0
             // 3. handle concurrency (lock)
-    
+
+            var threadId = Thread.CurrentThread.ManagedThreadId;
+            var time = DateTime.Now.ToString("HH:mm:ss.fff");
+
+            Console.WriteLine($"[{time}] Thread {threadId} -> Request START (Id={id})");
+
             lock (_lockObj) // 確保同一時間只有一個執行緒能操作 , TC+++:start
             {
+                var enterTime = DateTime.Now.ToString("HH:mm:ss.fff");
+                Console.WriteLine($"[{enterTime}] Thread {threadId} -> ENTER LOCK");
+
                 var item = _db.FirstOrDefault(x => x.Id == id);
 
                 if (item == null)
+                {
+                    Console.WriteLine($"[{DateTime.Now:HH:mm:ss.fff}] Thread {threadId} -> NOT FOUND");
                     return (false, "NOT_FOUND");
+                }
+
+                Console.WriteLine($"[{DateTime.Now:HH:mm:ss.fff}] Thread {threadId} -> Current Status = {item.Status}");
 
                 // ❗ 核心規則：只有 Status = 0 才能取消
                 if (item.Status != 0)
+                {
+                    Console.WriteLine($"[{DateTime.Now:HH:mm:ss.fff}] Thread {threadId} -> INVALID STATUS");
                     return (false, "INVALID_STATUS");
+                }
+
+                // only for test
+                Thread.Sleep(500);
 
                 item.Status = 9;
+
+                Console.WriteLine($"[{DateTime.Now:HH:mm:ss.fff}] Thread {threadId} -> SUCCESS (Status changed to 9)");
 
                 return (true, "SUCCESS");
             } //TC+++:end
