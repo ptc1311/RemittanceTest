@@ -27,6 +27,10 @@ namespace RemittanceTest.Services
             if (item == null)
                 return (false, "NOT_FOUND");
 
+            // ❗ 核心規則：只有 Status = 0 才能取消
+            if (item.Status != 0)
+                return (false, "INVALID_STATUS");
+
             item.Status = 9;
 
             return (true, "SUCCESS");
