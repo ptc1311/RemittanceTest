@@ -16,7 +16,7 @@
                 <p class="text-gray-500">金額: ${{ item.amount }} | 狀態: <span class="text-blue-600">{{ getStatusText(item.status) }}</span></p>
             </div>
             <button @click="cancelItem(item.id)"
-                    :disabled="item.status !== 0"
+                    :disabled="item.status !== 0 || loadingIds.includes(item.id)"
                     class="px-4 py-2 bg-red-500 text-white rounded disabled:bg-gray-300">
                 取消交易
             </button>
@@ -40,13 +40,43 @@
                 };
 
                 // TODO: 請實作此函數
+                const loadingIds = ref([]); //for 防連點button
                 const cancelItem = async (id) => {
+                    if (loadingIds.value.includes(id)) return;
+                    loadingIds.value.push(id);
+
                     // 1. 呼叫 POST API
                     // 2. 處理成功與失敗的回應
                     // 3. 成功後更新 remittances 中的狀態
+                    try {
+                        const res = await fetch(`/api/remittance/${id}/cancel`, {
+                            method: "POST"
+                        });
+
+                        if (res.status === 200) {
+                            // 成功 → 更新 UI 狀態
+                            const item = remittances.value.find(x => x.id === id);
+                            if (item) item.status = 9;
+
+                        } else if (res.status === 404) {
+                            alert("資料不存在");
+
+                        } else if (res.status === 400) {
+                            alert("此筆資料狀態不可取消");
+
+                        } else {
+                            alert("發生未知錯誤");
+                        }
+
+                    } catch (error) {
+                        console.error(error);
+                        alert("系統錯誤，請稍後再試");
+                    } finally {
+                        loadingIds.value = loadingIds.value.filter(x => x !== id);
+                    }
                 };
 
-                return { remittances, getStatusText, cancelItem };
+                return { remittances, getStatusText, cancelItem, loadingIds };
             }
         }).mount('#app');
     </script>
