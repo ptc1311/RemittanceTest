@@ -50,7 +50,7 @@ namespace RemittanceTest.Services
                 }
 
                 // only for test
-                Thread.Sleep(500);
+                //Thread.Sleep(500);
 
                 item.Status = 9;
 
