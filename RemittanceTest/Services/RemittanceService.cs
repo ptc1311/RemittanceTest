@@ -22,18 +22,21 @@ namespace RemittanceTest.Services
             // 2. validate status == 0
             // 3. handle concurrency (lock)
     
-            var item = _db.FirstOrDefault(x => x.Id == id);
+            lock (_lockObj) // 確保同一時間只有一個執行緒能操作 , TC+++:start
+            {
+                var item = _db.FirstOrDefault(x => x.Id == id);
 
-            if (item == null)
-                return (false, "NOT_FOUND");
+                if (item == null)
+                    return (false, "NOT_FOUND");
 
-            // ❗ 核心規則：只有 Status = 0 才能取消
-            if (item.Status != 0)
-                return (false, "INVALID_STATUS");
+                // ❗ 核心規則：只有 Status = 0 才能取消
+                if (item.Status != 0)
+                    return (false, "INVALID_STATUS");
 
-            item.Status = 9;
+                item.Status = 9;
 
-            return (true, "SUCCESS");
+                return (true, "SUCCESS");
+            } //TC+++:end
             throw new NotImplementedException();
         }
     }
